@@ -1,7 +1,7 @@
 import sys
 from utils.utils import get_args, process_config, create_dirs
 from data_loader.cyclegan_data_loader import CycleGANDataLoader
-#from models.cyclegan_model import CycleGANModel
+from models.cyclegan_model import CycleGANModel
 #from trainers.cyclegan_trainer import CycleGANModelTrainer
 
 def main():
@@ -21,9 +21,9 @@ def main():
     print(next(iter(data_loader.train_a)))
     print(next(iter(data_loader.train_b)))
 
-    # print('Create the model')
-    # model = CycleGANModel(config)
-    # print('model ready loading data now')
+    print('Create the model')
+    model = CycleGANModel(config, config['weights_path'])
+    print('model ready loading data now')
 
     # print('Create the trainer')
     # trainer = CycleGANModelTrainer(model.model, data_loader.get_train_data(), data_loader.get_val_data(), config, log_dir, checkpoint_dir)
