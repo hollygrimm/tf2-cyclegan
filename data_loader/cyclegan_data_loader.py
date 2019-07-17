@@ -11,8 +11,8 @@ class CycleGANDataLoader(BaseDataLoader):
 
         self.BUFFER_SIZE = config['buffer_size']
         self.BATCH_SIZE = config['batch_size']
-        self.IMG_WIDTH = config['img_size']
-        self.IMG_HEIGHT = config['img_size']
+        self.IMG_HEIGHT = config['img_height']
+        self.IMG_WIDTH = config['img_width']
         self.AUTOTUNE = tf.data.experimental.AUTOTUNE        
 
         dataset, metadata = tfds.load('cycle_gan/horse2zebra',
