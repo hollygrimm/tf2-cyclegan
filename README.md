@@ -3,6 +3,10 @@
 
 ## Requirements
 * tensorflow 2.0.0-beta1
+* tensorflow_datasets (horses to zebra dataset)
+* tensorflow_examples (pix2pix model)
+* jupyter (for visualization in notebooks)
+* matplotlib (for visualization in notebooks)
 
 
 ## AWS Install
@@ -16,6 +20,9 @@ source activate tf2_p37
 pip install tensorflow-gpu==2.0.0-beta1
 pip install --upgrade pip
 pip install tensorflow_datasets
+pip install jupyter
+pip install matplotlib
+pip install -q git+https://github.com/tensorflow/examples.git
 ```
 
 Test Install
