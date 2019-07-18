@@ -1,8 +1,9 @@
 {
-    "exp_name": "256",
+    "exp_name": "256_40epochs",
     "img_height": 256,
     "img_width": 256,
     "batch_size": 1, 
+    "nb_epoch": 40,
     "buffer_size": 1000,
     "weights_path": null
 }
