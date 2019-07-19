@@ -1,5 +1,5 @@
 # Tensorflow2 CycleGAN
-
+Converted Jupyter Notebook https://www.tensorflow.org/beta/tutorials/generative/cyclegan to Python 
 
 ## Requirements
 * tensorflow 2.0.0-beta1
