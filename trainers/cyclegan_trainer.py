@@ -51,7 +51,7 @@ class CycleGANModelTrainer(BaseTrain):
         plt.show()
 
     def save_generated_images(self, model, test_input, input_type, epoch):
-        os.makedirs('images/%s' % self.config['dataset_name'], exist_ok=True)
+        os.makedirs('images/%s' % input_type, exist_ok=True)
 
         prediction = model(test_input)
 
