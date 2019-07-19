@@ -125,6 +125,8 @@ class CycleGANModelTrainer(BaseTrain):
         for epoch in range(epochs):
             start = time.time()
 
+            self.save_generated_images(self.model.g_AB, self.sample_horse, "horse", epoch)
+
             n = 0
             for image_x, image_y in tf.data.Dataset.zip((self.trainA_data, self.trainB_data)):
                 self.train_step(image_x, image_y)
