@@ -50,12 +50,12 @@ class CycleGANModelTrainer(BaseTrain):
             plt.axis('off')
         plt.show()
 
-    def save_generated_images(self, model, test_input, epoch):
+    def save_generated_images(self, model, test_input, input_type, epoch):
         os.makedirs('images/%s' % self.config['dataset_name'], exist_ok=True)
 
         prediction = model(test_input)
 
-        imageio.imwrite("images/%s/%d_a_transl.jpg" % (self.config['dataset_name'], epoch), ((prediction[0]+1)*127.5).astype(np.uint8))
+        imageio.imwrite("images/%s/%d_a_transl.jpg" % (input_type, epoch), ((prediction[0]+1)*127.5).astype(np.uint8))
 
 
     @tf.function
@@ -138,7 +138,7 @@ class CycleGANModelTrainer(BaseTrain):
                 clear_output(wait=True)
                 self.generate_images(self.model.g_AB, self.sample_horse)
             else:
-                self.save_generated_images(self.model.g_AB, self.sample_horse, epoch)
+                self.save_generated_images(self.model.g_AB, self.sample_horse, "horse", epoch)
 
             if (epoch + 1) % 5 == 0:
                 ckpt_save_path = self.ckpt_manager.save()
