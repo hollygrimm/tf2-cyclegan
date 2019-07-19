@@ -2,6 +2,7 @@ import os
 import numpy as np
 import datetime
 import matplotlib.pyplot as plt
+from IPython.display import clear_output
 import imageio
 import tensorflow as tf
 from base.base_trainer import BaseTrain
@@ -126,8 +127,8 @@ class CycleGANModelTrainer(BaseTrain):
     def train(self):
         # Predict using a consistent image (sample_horse and sample_zebra) so that the progress of the model
         # is clearly visible.
-        sample_horse = next(iter(data_loader.train_a))
-        sample_zebra = next(iter(data_loader.train_b))
+        sample_a = next(iter(self.trainA_data))
+        sample_b = next(iter(self.trainB_data))
 
         epochs = self.config['nb_epoch']
         for epoch in range(epochs):
@@ -142,11 +143,11 @@ class CycleGANModelTrainer(BaseTrain):
 
             if self.viz_notebook:
                 clear_output(wait=True)
-                self.generate_images(self.model.g_AB, self.sample_horse)
-                self.generate_images(self.model.g_BA, self.sample_zebra)
+                self.generate_images(self.model.g_AB, sample_a)
+                self.generate_images(self.model.g_BA, sample_b)
             else:
-                self.save_generated_images(self.model.g_AB, self.sample_horse, "horse", epoch, None)
-                self.save_generated_images(self.model.g_AB, self.sample_zebra, "zebra", epoch, None)
+                self.save_generated_images(self.model.g_AB, sample_a, "horse", epoch, None)
+                self.save_generated_images(self.model.g_BA, sample_b, "zebra", epoch, None)
 
             if (epoch + 1) % 5 == 0:
                 ckpt_save_path = self.ckpt_manager.save()
@@ -162,12 +163,12 @@ class CycleGANModelTrainer(BaseTrain):
             for testA in self.testA_data.take(5):
                 self.generate_images(self.model.g_AB, testA)
             for testB in self.testB_data.take(5):
-                self.generate_images(self.model.g_AB, testB)
+                self.generate_images(self.model.g_BA, testB)
         else:
             for i, testA in enumerate(self.testA_data.take(5)):
                 self.save_generated_images(self.model.g_AB, testA, "horse", None, i)
             for i, testB in enumerate(self.testB_data.take(5)):
-                self.save_generated_images(self.model.g_AB, testB, "zebra", None, i)
+                self.save_generated_images(self.model.g_BA, testB, "zebra", None, i)
 
 
 
