@@ -7,7 +7,7 @@ from base.base_trainer import BaseTrain
 import time
 
 class CycleGANModelTrainer(BaseTrain):
-    def __init__(self, model, trainA_data, trainB_data, testA_data, testB_data, config, tensorboard_log_dir, checkpoint_dir, sample_horse):
+    def __init__(self, model, trainA_data, trainB_data, testA_data, testB_data, config, tensorboard_log_dir, checkpoint_dir, sample_horse, viz_notebook=False):
         super(CycleGANModelTrainer, self).__init__(model, trainA_data, trainB_data, testA_data, testB_data, config)
         self.tensorboard_log_dir = tensorboard_log_dir
         self.checkpoint_dir = checkpoint_dir   
@@ -16,6 +16,7 @@ class CycleGANModelTrainer(BaseTrain):
         self.val_loss = []
         self.val_acc = []
         self.sample_horse = sample_horse
+        self.viz_notebook = viz_notebook
 
         ckpt = tf.train.Checkpoint(g_AB=self.model.g_AB,
                                 g_BA=self.model.g_BA,
@@ -33,7 +34,7 @@ class CycleGANModelTrainer(BaseTrain):
             ckpt.restore(self.ckpt_manager.latest_checkpoint)
             print ('Latest checkpoint restored!!')
 
-    def generate_images(model, test_input):
+    def generate_images(self, model, test_input):
         prediction = model(test_input)
             
         plt.figure(figsize=(12, 12))
@@ -49,50 +50,13 @@ class CycleGANModelTrainer(BaseTrain):
             plt.axis('off')
         plt.show()
 
-    # TODO: save generated images to file folder
-    # def sample_images(self, epoch, batch_i):
-    #     os.makedirs('images/%s' % self.config['dataset_name'], exist_ok=True)
-    #     r, c = 2, 3
+    def save_generated_images(self, model, test_input, epoch):
+        os.makedirs('images/%s' % self.config['dataset_name'], exist_ok=True)
 
-    #     testA_datagen = DataGenerator(img_filenames=self.testA_data, batch_size=1, target_size=(self.config['img_height'], self.config['img_width']))
-    #     testB_datagen = DataGenerator(img_filenames=self.testB_data, batch_size=1, target_size=(self.config['img_height'], self.config['img_width']))
+        prediction = model(test_input)
 
-    #     testA_generator = iter(testA_datagen)
-    #     testB_generator = iter(testB_datagen)
+        imageio.imwrite("images/%s/%d_a_transl.jpg" % (self.config['dataset_name'], epoch), ((prediction[0]+1)*127.5).astype(np.uint8))
 
-    #     imgs_A = next(testA_generator)
-    #     imgs_B = next(testB_generator)
-
-    #     # Translate images to the other domain
-    #     fake_B = self.model.g_AB.predict(imgs_A)
-    #     fake_A = self.model.g_BA.predict(imgs_B)
-
-    #     # Translate back to original domain
-    #     reconstr_A = self.model.g_BA.predict(fake_B)
-    #     reconstr_B = self.model.g_AB.predict(fake_A)
-
-    #     gen_imgs = np.concatenate([imgs_A, fake_B, reconstr_A, imgs_B, fake_A, reconstr_B])
-
-    #     # Rescale images 0 - 1
-    #     gen_imgs = 0.5 * gen_imgs + 0.5
-
-    #     # Plot images
-    #     titles = ['Original', 'Translated', 'Reconstructed']
-    #     fig, axs = plt.subplots(r, c)
-    #     cnt = 0
-    #     for i in range(r):
-    #         for j in range(c):
-    #             axs[i,j].imshow(gen_imgs[cnt])
-    #             axs[i, j].set_title(titles[j])
-    #             axs[i,j].axis('off')
-    #             cnt += 1
-    #     fig.savefig("images/%s/%d_%d.jpg" % (self.config['dataset_name'], epoch, batch_i))
-    #     plt.close()
-
-    #     imageio.imwrite("images/%s/%d_%d_a_transl.jpg" % (self.config['dataset_name'], epoch, batch_i), ((fake_B[0]+1)*127.5).astype(np.uint8))
-    #     imageio.imwrite("images/%s/%d_%d_b_transl.jpg" % (self.config['dataset_name'], epoch, batch_i), ((fake_A[0]+1)*127.5).astype(np.uint8))
-    #     imageio.imwrite("images/%s/%d_%d_a_recon.jpg" % (self.config['dataset_name'], epoch, batch_i), ((reconstr_A[0]+1)*127.5).astype(np.uint8))
-    #     imageio.imwrite("images/%s/%d_%d_b_recon.jpg" % (self.config['dataset_name'], epoch, batch_i), ((reconstr_B[0]+1)*127.5).astype(np.uint8))
 
     @tf.function
     def train_step(self, real_A, real_B):
@@ -165,11 +129,16 @@ class CycleGANModelTrainer(BaseTrain):
                 self.train_step(image_x, image_y)
                 if n % 10 == 0:
                     print ('.', end='')
-                n+=1
+                n += 1
 
-            # Using a consistent image (sample_horse) so that the progress of the model
+
+            # Predict using a consistent image (sample_horse) so that the progress of the model
             # is clearly visible.
-            generate_images(self.model.g_AB, self.sample_horse)
+            if self.viz_notebook:
+                clear_output(wait=True)
+                self.generate_images(self.model.g_AB, self.sample_horse)
+            else:
+                save_generated_images(self.model.g_AB, self.sample_horse, epoch)
 
             if (epoch + 1) % 5 == 0:
                 ckpt_save_path = self.ckpt_manager.save()
