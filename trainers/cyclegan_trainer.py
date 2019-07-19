@@ -138,7 +138,7 @@ class CycleGANModelTrainer(BaseTrain):
                 clear_output(wait=True)
                 self.generate_images(self.model.g_AB, self.sample_horse)
             else:
-                save_generated_images(self.model.g_AB, self.sample_horse, epoch)
+                self.save_generated_images(self.model.g_AB, self.sample_horse, epoch)
 
             if (epoch + 1) % 5 == 0:
                 ckpt_save_path = self.ckpt_manager.save()
