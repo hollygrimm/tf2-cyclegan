@@ -22,6 +22,7 @@ pip install --upgrade pip
 pip install tensorflow_datasets
 pip install jupyter
 pip install matplotlib
+pip install imageio
 pip install -q git+https://github.com/tensorflow/examples.git
 ```
 

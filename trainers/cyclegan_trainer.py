@@ -2,6 +2,7 @@ import os
 import numpy as np
 import datetime
 import matplotlib.pyplot as plt
+import imageio
 import tensorflow as tf
 from base.base_trainer import BaseTrain
 import time
