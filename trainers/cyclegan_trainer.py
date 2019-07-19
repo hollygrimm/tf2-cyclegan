@@ -56,7 +56,7 @@ class CycleGANModelTrainer(BaseTrain):
 
         prediction = model(test_input)
 
-        imageio.imwrite("images/%s/%d_a_transl.jpg" % (input_type, epoch), ((prediction[0]+1)*127.5)
+        imageio.imwrite("images/%s/%d_a_transl.jpg" % (input_type, epoch), ((prediction[0]+1)*127.5))
 
 
     @tf.function
