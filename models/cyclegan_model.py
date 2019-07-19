@@ -3,13 +3,12 @@ from base.base_model import BaseModel
 from tensorflow_examples.models.pix2pix import pix2pix
 
 class CycleGANModel(BaseModel):
-    def __init__(self, config, weights_path, is_train=True):
+    def __init__(self, config, is_train=True):
         super(CycleGANModel, self).__init__(config)
         self.CHANNELS = 3
         self.IMG_HEIGHT = config['img_height']
         self.IMG_WIDTH = config['img_width']
         self.IMG_SHAPE = (self.IMG_HEIGHT, self.IMG_WIDTH, self.CHANNELS)
-        self.WEIGHTS_PATH = weights_path
         self.LAMBDA = 10
         self.build_model()
 

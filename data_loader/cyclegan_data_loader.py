@@ -8,7 +8,6 @@ class CycleGANDataLoader(BaseDataLoader):
 
     def __init__(self, config):
         super(CycleGANDataLoader, self).__init__(config)
-
         self.BUFFER_SIZE = config['buffer_size']
         self.BATCH_SIZE = config['batch_size']
         self.IMG_HEIGHT = config['img_height']

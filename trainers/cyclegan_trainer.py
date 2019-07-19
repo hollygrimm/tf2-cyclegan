@@ -8,7 +8,7 @@ from base.base_trainer import BaseTrain
 import time
 
 class CycleGANModelTrainer(BaseTrain):
-    def __init__(self, model, trainA_data, trainB_data, testA_data, testB_data, config, tensorboard_log_dir, checkpoint_dir, sample_horse, viz_notebook=False):
+    def __init__(self, model, trainA_data, trainB_data, testA_data, testB_data, config, tensorboard_log_dir, checkpoint_dir, viz_notebook=False):
         super(CycleGANModelTrainer, self).__init__(model, trainA_data, trainB_data, testA_data, testB_data, config)
         self.tensorboard_log_dir = tensorboard_log_dir
         self.checkpoint_dir = checkpoint_dir   
@@ -16,7 +16,6 @@ class CycleGANModelTrainer(BaseTrain):
         self.acc = []
         self.val_loss = []
         self.val_acc = []
-        self.sample_horse = sample_horse
         self.viz_notebook = viz_notebook
 
         ckpt = tf.train.Checkpoint(g_AB=self.model.g_AB,
@@ -35,12 +34,12 @@ class CycleGANModelTrainer(BaseTrain):
             ckpt.restore(self.ckpt_manager.latest_checkpoint)
             print ('Latest checkpoint restored!!')
 
-    def generate_images(self, model, test_input):
-        prediction = model(test_input)
+    def generate_images(self, model, input_image):
+        prediction = model(input_image)
             
         plt.figure(figsize=(12, 12))
 
-        display_list = [test_input[0], prediction[0]]
+        display_list = [input_image[0], prediction[0]]
         title = ['Input Image', 'Predicted Image']
 
         for i in range(2):
@@ -51,12 +50,16 @@ class CycleGANModelTrainer(BaseTrain):
             plt.axis('off')
         plt.show()
 
-    def save_generated_images(self, model, test_input, input_type, epoch):
+    # FIXME: epoch vs id
+    def save_generated_images(self, model, input_image, input_type, epoch, img_id):
         os.makedirs('images/%s' % input_type, exist_ok=True)
 
-        prediction = model(test_input)
+        prediction = model(input_image)
 
-        imageio.imwrite("images/%s/%d_a_transl.jpg" % (input_type, epoch), ((prediction[0]+1)*127.5))
+        if epoch != None:
+            imageio.imwrite("images/%s/%d_a_transl.jpg" % (input_type, epoch), ((prediction[0]+1)*127.5))
+        else:
+            imageio.imwrite("images/%s/a_transl_%d.jpg" % (input_type, img_id), ((prediction[0]+1)*127.5))
 
 
     @tf.function
@@ -121,11 +124,14 @@ class CycleGANModelTrainer(BaseTrain):
 
 
     def train(self):
+        # Predict using a consistent image (sample_horse and sample_zebra) so that the progress of the model
+        # is clearly visible.
+        sample_horse = next(iter(data_loader.train_a))
+        sample_zebra = next(iter(data_loader.train_b))
+
         epochs = self.config['nb_epoch']
         for epoch in range(epochs):
             start = time.time()
-
-            self.save_generated_images(self.model.g_AB, self.sample_horse, "horse", epoch)
 
             n = 0
             for image_x, image_y in tf.data.Dataset.zip((self.trainA_data, self.trainB_data)):
@@ -134,14 +140,13 @@ class CycleGANModelTrainer(BaseTrain):
                     print ('.', end='')
                 n += 1
 
-
-            # Predict using a consistent image (sample_horse) so that the progress of the model
-            # is clearly visible.
             if self.viz_notebook:
                 clear_output(wait=True)
                 self.generate_images(self.model.g_AB, self.sample_horse)
+                self.generate_images(self.model.g_BA, self.sample_zebra)
             else:
-                self.save_generated_images(self.model.g_AB, self.sample_horse, "horse", epoch)
+                self.save_generated_images(self.model.g_AB, self.sample_horse, "horse", epoch, None)
+                self.save_generated_images(self.model.g_AB, self.sample_zebra, "zebra", epoch, None)
 
             if (epoch + 1) % 5 == 0:
                 ckpt_save_path = self.ckpt_manager.save()
@@ -152,6 +157,17 @@ class CycleGANModelTrainer(BaseTrain):
                                                                 time.time()-start))
 
                     
+    def predict(self):
+        if self.viz_notebook:
+            for testA in self.testA_data.take(5):
+                self.generate_images(self.model.g_AB, testA)
+            for testB in self.testB_data.take(5):
+                self.generate_images(self.model.g_AB, testB)
+        else:
+            for i, testA in enumerate(self.testA_data.take(5)):
+                self.save_generated_images(self.model.g_AB, testA, "horse", None, i)
+            for i, testB in enumerate(self.testB_data.take(5)):
+                self.save_generated_images(self.model.g_AB, testB, "zebra", None, i)
 
 
 

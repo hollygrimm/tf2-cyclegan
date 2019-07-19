@@ -51,7 +51,17 @@ python main.py -c input_params.json
 ## Tensorboard
 
 
-## Run Inference on Validation Samples
+## Run Inference on Test Samples
+Update trained_checkpoint_dir:
+```
+vi input_params_predict.json
+```
 
+Run inference:
+```
+source activate tf2_p37
+cd tf2-cyclegan/
+python predict.py -c input_params_predict.json
+```
 
 ## Run Tests
