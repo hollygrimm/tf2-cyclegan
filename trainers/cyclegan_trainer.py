@@ -35,6 +35,8 @@ class CycleGANModelTrainer(BaseTrain):
             ckpt.restore(self.ckpt_manager.latest_checkpoint)
             print ('Latest checkpoint restored!!')
 
+        self.train_summary_writer = tf.summary.create_file_writer(tensorboard_log_dir)
+
     def generate_images(self, model, input_image):
         prediction = model(input_image)
             
@@ -89,13 +91,38 @@ class CycleGANModelTrainer(BaseTrain):
             # calculate the loss
             gen_AB_loss = self.model.generator_loss(disc_fake_B)
             gen_BA_loss = self.model.generator_loss(disc_fake_A)
+
+            gen_A_cycle_loss = self.model.calc_cycle_loss(real_A, cycled_A)
+            gen_B_cycle_loss = self.model.calc_cycle_loss(real_B, cycled_B)
+
+            gen_A_identity_loss = self.model.identity_loss(real_A, same_A)
+            gen_B_identity_loss = self.model.identity_loss(real_B, same_B)
             
             # Total generator loss = adversarial loss + cycle loss
-            total_gen_AB_loss = gen_AB_loss + self.model.calc_cycle_loss(real_A, cycled_A) + self.model.identity_loss(real_B, same_B)
-            total_gen_BA_loss = gen_BA_loss + self.model.calc_cycle_loss(real_B, cycled_B) + self.model.identity_loss(real_A, same_A)
+            total_gen_AB_loss = gen_AB_loss + gen_A_cycle_loss + gen_B_identity_loss
+            total_gen_BA_loss = gen_BA_loss + gen_B_cycle_loss + gen_A_identity_loss
 
             disc_A_loss = self.model.discriminator_loss(disc_real_A, disc_fake_A)
             disc_B_loss = self.model.discriminator_loss(disc_real_B, disc_fake_B)
+
+        # log losses for tensorboard
+        gen_AB_losses = {'gen_AB_loss': gen_AB_loss,
+                            'gen_A_cycle_loss': gen_A_cycle_loss,
+                            'gen_B_identity_loss': gen_B_identity_loss}
+
+        gen_BA_losses = {'gen_BA_loss': gen_BA_loss,
+                            'gen_B_cycle_loss': gen_B_cycle_loss,
+                            'gen_A_identity_loss': gen_A_identity_loss}                            
+
+        for name, value in gen_AB_losses.items():
+            tf.summary.scalar(name, value, step=self.model.g_AB_optimizer.iterations)
+
+        for name, value in gen_BA_losses.items():
+            tf.summary.scalar(name, value, step=self.model.g_BA_optimizer.iterations)            
+
+        tf.summary.scalar('d_A_loss', disc_A_loss, step=self.model.d_A_optimizer.iterations)
+
+        tf.summary.scalar('d_B_loss', disc_B_loss, step=self.model.d_B_optimizer.iterations)        
         
         # Calculate the gradients for generator and discriminator
         generator_g_gradients = gen_tape.gradient(total_gen_AB_loss, 
@@ -130,32 +157,33 @@ class CycleGANModelTrainer(BaseTrain):
         sample_a = next(iter(self.trainA_data))
         sample_b = next(iter(self.trainB_data))
 
-        epochs = self.config['nb_epoch']
-        for epoch in range(epochs):
-            start = time.time()
+        with self.train_summary_writer.as_default():
+            epochs = self.config['nb_epoch']
+            for epoch in range(epochs):
+                start = time.time()
 
-            n = 0
-            for image_x, image_y in tf.data.Dataset.zip((self.trainA_data, self.trainB_data)):
-                self.train_step(image_x, image_y)
-                if n % 10 == 0:
-                    print ('.', end='')
-                n += 1
+                n = 0
+                for image_x, image_y in tf.data.Dataset.zip((self.trainA_data, self.trainB_data)):
+                    self.train_step(image_x, image_y)
+                    if n % 10 == 0:
+                        print ('.', end='')
+                    n += 1
 
-            if self.viz_notebook:
-                clear_output(wait=True)
-                self.generate_images(self.model.g_AB, sample_a)
-                self.generate_images(self.model.g_BA, sample_b)
-            else:
-                self.save_generated_images(self.model.g_AB, sample_a, "horse", epoch, None)
-                self.save_generated_images(self.model.g_BA, sample_b, "zebra", epoch, None)
+                if self.viz_notebook:
+                    clear_output(wait=True)
+                    self.generate_images(self.model.g_AB, sample_a)
+                    self.generate_images(self.model.g_BA, sample_b)
+                else:
+                    self.save_generated_images(self.model.g_AB, sample_a, "horse", epoch, None)
+                    self.save_generated_images(self.model.g_BA, sample_b, "zebra", epoch, None)
 
-            if (epoch + 1) % 5 == 0:
-                ckpt_save_path = self.ckpt_manager.save()
-                print ('Saving checkpoint for epoch {} at {}'.format(epoch+1,
-                                                                    ckpt_save_path))
+                if (epoch + 1) % 5 == 0:
+                    ckpt_save_path = self.ckpt_manager.save()
+                    print ('Saving checkpoint for epoch {} at {}'.format(epoch+1,
+                                                                        ckpt_save_path))
 
-            print ('Time taken for epoch {} is {} sec\n'.format(epoch + 1,
-                                                                time.time()-start))
+                print ('Time taken for epoch {} is {} sec\n'.format(epoch + 1,
+                                                                    time.time()-start))
 
                     
     def predict(self):
