@@ -10,9 +10,57 @@ Converted Jupyter Notebook https://www.tensorflow.org/beta/tutorials/generative/
 
 
 ## AWS Install
+Select CUDA version 10.0
+```
+sudo rm /usr/local/cuda
+sudo ln -s /usr/local/cuda-10.0 /usr/local/cuda
+```
+
+Update CUDA driver >= 410.48 (from https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/install-nvidia-driver.html)
+```
+sudo apt-get update -y
+sudo apt-get upgrade -y linux-aws
+sudo reboot
+sudo apt-get install -y gcc make linux-headers-$(uname -r)
+```
+
+```
+cat << EOF | sudo tee --append /etc/modprobe.d/blacklist.conf
+blacklist vga16fb
+blacklist nouveau
+blacklist rivafb
+blacklist nvidiafb
+blacklist rivatv
+EOF
+```
+```
+vi /etc/default/grub
+```
+add following line to grub
+```
+GRUB_CMDLINE_LINUX="rdblacklist=nouveau"
+```
+
+Find correct version of driver https://www.nvidia.com/Download/Find.aspx by selecting Tesla K80, Ubuntu 16.04, CUDA 10.0 and modify version in download path below.
+
+```
+sudo update-grub
+cd /tmp
+wget http://us.download.nvidia.com/tesla/410.104/NVIDIA-Linux-x86_64-410.104.run
+sudo /bin/sh ./NVIDIA-Linux-x86_64-410.104.run
+```
+accept all defaults on install (DKMS will fail if you select it)
+
+```
+sudo reboot
+```
+
+```
+nvidia-smi -q | head
+```
 
 
-## Manual Install
+## Conda Install
 ```
 conda create -n tf2_p37 python=3.7
 conda install -n tf2_p37 pip
@@ -34,12 +82,11 @@ assert tf.test.is_built_with_cuda()
 ```
 
 ### Download Dataset
-
-
-## Label Data with Attributes
+when training is run, tensorflow_datasets downloads the cycle_gan dataset (111.45 MiB) to /home/ubuntu/tensorflow_datasets/cycle_gan/horse2zebra/0.1.0
+ 
 
 ## input_params.json Configuration
-
+TODO
 
 ## Run Training
 ```
@@ -49,7 +96,7 @@ python main.py -c input_params.json
 ```
 
 ## Tensorboard
-
+TODO
 
 ## Run Inference on Test Samples
 Update trained_checkpoint_dir:
@@ -65,3 +112,4 @@ python predict.py -c input_params_predict.json
 ```
 
 ## Run Tests
+TODO
