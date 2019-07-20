@@ -10,11 +10,14 @@ Converted Jupyter Notebook https://www.tensorflow.org/beta/tutorials/generative/
 
 
 ## AWS Install
+Instructions below for an AWS p2.xlarge with Deep Learning AMI (Ubuntu 16.04) Version 21.2.
+
 Select CUDA version 10.0
 ```
 sudo rm /usr/local/cuda
 sudo ln -s /usr/local/cuda-10.0 /usr/local/cuda
 ```
+Find the appropriate Linux driver version for CUDA 10.0: https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/index.html
 
 Update CUDA driver >= 410.48 (from https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/install-nvidia-driver.html)
 ```
