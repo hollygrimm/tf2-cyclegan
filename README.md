@@ -99,7 +99,11 @@ python main.py -c input_params.json
 ```
 
 ## Tensorboard
-TODO
+```
+source activate tf2_p37
+cd tf2-cyclegan/experiments/
+tensorboard --logdir=.
+```
 
 ## Run Inference on Test Samples
 Update trained_checkpoint_dir:
