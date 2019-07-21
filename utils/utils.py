@@ -32,10 +32,13 @@ def get_config_from_json(json_file):
 
 def process_config(json_file):
     config_dict = get_config_from_json(json_file)
-    # TODO: add time to path
-    log_dir = os.path.join('experiments', time.strftime("%Y-%m-%d/",time.localtime()), config_dict['exp_name'], 'logs/')
-    checkpoint_dir = os.path.join('experiments', time.strftime("%Y-%m-%d/",time.localtime()), config_dict['exp_name'], 'checkpoints/')
-    return config_dict, log_dir, checkpoint_dir
+
+    date_str = time.strftime("%Y-%m-%d_%H:%M/",time.localtime())
+    log_dir = os.path.join('experiments', date_str, config_dict['exp_name'], 'logs/')
+    checkpoint_dir = os.path.join('experiments', date_str, config_dict['exp_name'], 'checkpoints/')
+    image_dir = os.path.join('experiments', date_str, config_dict['exp_name'], 'images/')
+    predict_dir = os.path.join('predict', date_str)
+    return config_dict, log_dir, checkpoint_dir, image_dir, predict_dir
 
 def create_dirs(dirs):
     """Create directories if not found

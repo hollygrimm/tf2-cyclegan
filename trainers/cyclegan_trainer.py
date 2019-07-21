@@ -9,10 +9,11 @@ from base.base_trainer import BaseTrain
 import time
 
 class CycleGANModelTrainer(BaseTrain):
-    def __init__(self, model, trainA_data, trainB_data, testA_data, testB_data, config, tensorboard_log_dir, checkpoint_dir, viz_notebook=False):
+    def __init__(self, model, trainA_data, trainB_data, testA_data, testB_data, config, tensorboard_log_dir, checkpoint_dir, image_dir, viz_notebook=False):
         super(CycleGANModelTrainer, self).__init__(model, trainA_data, trainB_data, testA_data, testB_data, config)
         self.tensorboard_log_dir = tensorboard_log_dir
-        self.checkpoint_dir = checkpoint_dir   
+        self.checkpoint_dir = checkpoint_dir
+        self.image_dir = image_dir
         self.loss = []
         self.acc = []
         self.val_loss = []
@@ -55,14 +56,12 @@ class CycleGANModelTrainer(BaseTrain):
 
     # FIXME: epoch vs id
     def save_generated_images(self, model, input_image, input_type, epoch, img_id):
-        os.makedirs('images/%s' % input_type, exist_ok=True)
-
         prediction = model(input_image)
 
         if epoch != None:
-            imageio.imwrite("images/%s/%d_a_transl.jpg" % (input_type, epoch), ((prediction[0]+1)*127.5))
+            imageio.imwrite("%s%d_%s_transl.jpg" % (self.image_dir, epoch, input_type), ((prediction[0]+1)*127.5))
         else:
-            imageio.imwrite("images/%s/a_transl_%d.jpg" % (input_type, img_id), ((prediction[0]+1)*127.5))
+            imageio.imwrite("%s%s_transl_%d.jpg" % (self.image_dir, img_id, input_type), ((prediction[0]+1)*127.5))
 
 
     @tf.function
@@ -152,7 +151,7 @@ class CycleGANModelTrainer(BaseTrain):
 
 
     def train(self):
-        # Predict using a consistent image (sample_horse and sample_zebra) so that the progress of the model
+        # Predict using a consistent image (sample from a and b) so that the progress of the model
         # is clearly visible.
         sample_a = next(iter(self.trainA_data))
         sample_b = next(iter(self.trainB_data))
@@ -174,8 +173,8 @@ class CycleGANModelTrainer(BaseTrain):
                     self.generate_images(self.model.g_AB, sample_a)
                     self.generate_images(self.model.g_BA, sample_b)
                 else:
-                    self.save_generated_images(self.model.g_AB, sample_a, "horse", epoch, None)
-                    self.save_generated_images(self.model.g_BA, sample_b, "zebra", epoch, None)
+                    self.save_generated_images(self.model.g_AB, sample_a, "a", epoch, None)
+                    self.save_generated_images(self.model.g_BA, sample_b, "b", epoch, None)
 
                 if (epoch + 1) % 5 == 0:
                     ckpt_save_path = self.ckpt_manager.save()
@@ -194,9 +193,9 @@ class CycleGANModelTrainer(BaseTrain):
                 self.generate_images(self.model.g_BA, testB)
         else:
             for i, testA in enumerate(self.testA_data.take(5)):
-                self.save_generated_images(self.model.g_AB, testA, "horse", None, i)
+                self.save_generated_images(self.model.g_AB, testA, "a", None, i)
             for i, testB in enumerate(self.testB_data.take(5)):
-                self.save_generated_images(self.model.g_BA, testB, "zebra", None, i)
+                self.save_generated_images(self.model.g_BA, testB, "b", None, i)
 
 
 

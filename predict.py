@@ -10,10 +10,13 @@ def predict():
     # process the json configuration file
     try:
         args = get_args()
-        config,log_dir, _ = process_config(args.config)
+        config, log_dir, _, _, predict_dir = process_config(args.config)
     except:
         print('missing or invalid arguments')
         print('Unexpected error:', sys.exc_info()[0])
+
+    # create the experiment directories
+    create_dirs([predict_dir])
 
     print('Create the data generator')
     data_loader = CycleGANDataLoader(config)
@@ -23,7 +26,7 @@ def predict():
     print('model ready loading data now')
 
     print('Create the trainer')
-    trainer = CycleGANModelTrainer(model, data_loader.train_a, data_loader.train_b, data_loader.test_a, data_loader.test_b, config, log_dir, config['trained_checkpoint_dir'])
+    trainer = CycleGANModelTrainer(model, data_loader.train_a, data_loader.train_b, data_loader.test_a, data_loader.test_b, config, log_dir, config['trained_checkpoint_dir'], predict_dir)
 
     print('Infer.')
     trainer.predict()
