@@ -61,7 +61,7 @@ class CycleGANModelTrainer(BaseTrain):
         if epoch != None:
             imageio.imwrite("%s%d_%s_transl.jpg" % (self.image_dir, epoch, input_type), ((prediction[0]+1)*127.5))
         else:
-            imageio.imwrite("%s%s_transl_%d.jpg" % (self.image_dir, img_id, input_type), ((prediction[0]+1)*127.5))
+            imageio.imwrite("%s%s_transl_%d.jpg" % (self.image_dir, input_type, img_id), ((prediction[0]+1)*127.5))
 
 
     @tf.function
