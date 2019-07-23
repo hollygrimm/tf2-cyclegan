@@ -89,7 +89,11 @@ when training is run, tensorflow_datasets downloads the cycle_gan dataset (111.4
  
 
 ## input_params.json Configuration
-TODO
+- `exp_name`: description of experiment
+- `gan_mode`: either `gan`, `hinge_v1`, `hinge_v2`, `lsgan`, `wgan`
+- `gradient_penalty_mode`: either `none`, `dragan`, `wgan-gp`
+- `batch_size`: integer batch size appropriate for your GPU size 
+- `nb_epoch`: integer number of epochs
 
 ## Run Training
 ```

@@ -1,5 +1,7 @@
 {
     "exp_name": "256_40epochs",
+    "gan_mode": "gan",
+    "gradient_penalty_mode": "none",    
     "img_height": 256,
     "img_width": 256,
     "batch_size": 1, 
