@@ -9,7 +9,9 @@ class CycleGANModel(BaseModel):
         self.IMG_HEIGHT = config['img_height']
         self.IMG_WIDTH = config['img_width']
         self.IMG_SHAPE = (self.IMG_HEIGHT, self.IMG_WIDTH, self.CHANNELS)
-        self.LAMBDA = 10
+        self.LAMBDA_CYCLE = 10  # Cycle-consistency loss weight, 10 in orig paper
+        self.LAMBDA_ID = 0.5 * self.LAMBDA_CYCLE  # Identity loss weight .5 lambda_cycle for monet and flower in orig paper
+
         self.build_model()
 
     def generator_loss(self, generated):
@@ -23,13 +25,15 @@ class CycleGANModel(BaseModel):
 
     def calc_cycle_loss(self, real_image, cycled_image):
         loss1 = tf.reduce_mean(tf.abs(real_image - cycled_image))
-        return self.LAMBDA * loss1
+        return self.LAMBDA_CYCLE * loss1
 
     def identity_loss(self, real_image, same_image):
         loss = tf.reduce_mean(tf.abs(real_image - same_image))
-        return self.LAMBDA * 0.5 * loss
+        return self.LAMBDA_ID * loss
         
     def build_model(self):
+
+        # TODO: default generator is ResNet 
         self.g_AB = pix2pix.unet_generator(self.CHANNELS, norm_type='instancenorm')
         self.g_BA = pix2pix.unet_generator(self.CHANNELS, norm_type='instancenorm')
 
@@ -42,7 +46,11 @@ class CycleGANModel(BaseModel):
         self.d_A_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
         self.d_B_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
 
+        # vanilla GAN
         self.loss_obj = tf.keras.losses.BinaryCrossentropy(from_logits=True)
+
+        # tf.keras.losses.Hinge loss = maximum(1 - y_true * y_pred, 0)`
+
 
 
  
