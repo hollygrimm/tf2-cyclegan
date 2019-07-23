@@ -124,9 +124,9 @@ class CycleGANModelTrainer(BaseTrain):
         tf.summary.scalar('d_B_loss', disc_B_loss, step=self.model.d_B_optimizer.iterations)        
         
         # Calculate the gradients for generator and discriminator
-        generator_g_gradients = gen_tape.gradient(total_gen_AB_loss, 
+        gen_AB_gradients = gen_tape.gradient(total_gen_AB_loss, 
                                                     self.model.g_AB.trainable_variables)
-        generator_f_gradients = gen_tape.gradient(total_gen_BA_loss, 
+        gen_BA_gradients = gen_tape.gradient(total_gen_BA_loss, 
                                                     self.model.g_BA.trainable_variables)
         
         self.discriminator_A_gradients = disc_tape.gradient(
@@ -135,10 +135,10 @@ class CycleGANModelTrainer(BaseTrain):
             disc_B_loss, self.model.d_B.trainable_variables)
         
         # Apply the gradients to the optimizer
-        self.model.g_AB_optimizer.apply_gradients(zip(generator_g_gradients, 
+        self.model.g_AB_optimizer.apply_gradients(zip(gen_AB_gradients, 
                                                     self.model.g_AB.trainable_variables))
 
-        self.model.g_BA_optimizer.apply_gradients(zip(generator_f_gradients, 
+        self.model.g_BA_optimizer.apply_gradients(zip(gen_BA_gradients, 
                                                     self.model.g_BA.trainable_variables))
         
         self.model.d_A_optimizer.apply_gradients(
