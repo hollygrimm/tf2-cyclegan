@@ -1,6 +1,6 @@
 {
-    "exp_name": "256_40epochs",
-    "gan_mode": "gan",
+    "exp_name": "256_40epochs_lsgan",
+    "gan_mode": "lsgan",
     "gradient_penalty_mode": "none",    
     "img_height": 256,
     "img_width": 256,
